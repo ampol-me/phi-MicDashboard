@@ -1,7 +1,25 @@
 import Database from 'better-sqlite3'
 import { Speaker } from '../../types/speaker'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
+import { mkdirSync } from 'fs'
 
-const db = new Database('speakers.db')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const dbDir = resolve(__dirname, '../data')
+const dbPath = resolve(dbDir, 'speakers.db')
+
+// สร้างโฟลเดอร์ถ้ายังไม่มี
+try {
+  mkdirSync(dbDir, { recursive: true })
+} catch (error) {
+  console.error('Error creating database directory:', error)
+}
+
+const db = new Database(dbPath, {
+  fileMustExist: false,
+  readonly: false
+})
 
 // สร้างตาราง speakers ถ้ายังไม่มี
 db.exec(`
@@ -9,24 +27,24 @@ db.exec(`
     id INTEGER PRIMARY KEY,
     batteryStatus INTEGER,
     batteryCharges INTEGER,
-    name TEXT NOT NULL,
-    prio INTEGER NOT NULL,
-    extra_seat INTEGER NOT NULL,
+    name TEXT,
+    prio INTEGER,
+    extra_seat INTEGER,
     signalStatus INTEGER,
-    selected INTEGER NOT NULL,
-    cameraPrepos INTEGER NOT NULL,
-    batterySerialNo TEXT NOT NULL,
-    cameraId INTEGER NOT NULL,
-    unitType INTEGER NOT NULL,
-    connected INTEGER NOT NULL,
+    selected INTEGER,
+    cameraPrepos INTEGER,
+    batterySerialNo TEXT,
+    cameraId INTEGER,
+    unitType INTEGER,
+    connected INTEGER,
     signalLevel INTEGER,
-    dual INTEGER NOT NULL,
-    unitId INTEGER NOT NULL,
-    hasDisplay INTEGER NOT NULL,
-    identification INTEGER NOT NULL,
-    voting INTEGER NOT NULL,
-    rangeTest INTEGER NOT NULL,
-    unitProps INTEGER NOT NULL,
+    dual INTEGER,
+    unitId INTEGER,
+    hasDisplay INTEGER,
+    identification INTEGER,
+    voting INTEGER,
+    rangeTest INTEGER,
+    unitProps INTEGER,
     micOn INTEGER NOT NULL DEFAULT 0
   )
 `)
