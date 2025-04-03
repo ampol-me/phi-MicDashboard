@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      target: production
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=3000
+      # สามารถเปลี่ยน API_BASE ได้ตามต้องการ
+      - API_BASE=http://192.168.1.125:3000
+    restart: unless-stopped 
