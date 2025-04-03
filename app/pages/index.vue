@@ -61,34 +61,57 @@ const toggleMic = async (speaker: Speaker) => {
   try {
     speaker.isUpdating = true
     const newStatus = !speaker.micOn
+
+    // ใช้ URL จาก runtimeConfig
+    const config = useRuntimeConfig()
+    const baseURL = config.public.apiBase || 'http://192.168.1.125:3000'
     
-    const response = await fetch(`/api/speaker/${speaker.id}/mic`, {
+    const response = await fetch(`${baseURL}/api/speaker/${speaker.id}/mic`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache',
       },
+      mode: 'cors',
+      credentials: 'include',
       body: JSON.stringify({
         micOn: newStatus
       })
     })
     
     if (response.ok) {
+      // อัพเดท UI ทันที
       speaker.micOn = newStatus
       error.value = null
+      
+      // แสดง feedback
+      if (process.client) {
+        useToast().add({
+          title: 'Success',
+          description: `${speaker.name} ${newStatus ? 'เปิด' : 'ปิด'}`,
+          color: 'success',
+          timeout: 2000
+        })
+      }
     } else {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
   } catch (err) {
     console.error('Failed to update mic status:', err)
     error.value = 'ไม่สามารถอัพเดทสถานะไมค์ได้'
-    // แสดง error notification
+    
     if (process.client) {
       useToast().add({
         title: 'Error',
         description: 'ไม่สามารถอัพเดทสถานะไมค์ได้',
-        color: 'error'
+        color: 'error',
+        timeout: 3000
       })
     }
+    
+    // ถ้าเกิด error ให้ refresh ข้อมูลใหม่
+    await refreshData()
   } finally {
     speaker.isUpdating = false
   }
@@ -97,17 +120,42 @@ const toggleMic = async (speaker: Speaker) => {
 // ฟังก์ชันสำหรับรีเฟรชข้อมูล
 const refreshData = async () => {
   try {
-    const { data: newData } = await useFetch<Speaker[]>('/api/speakers/available')
-    if (newData.value && Array.isArray(newData.value)) {
-      speakers.value = newData.value.map((speaker: any) => ({
-        ...speaker,
-        isUpdating: speakers.value.find(s => s.id === speaker.id)?.isUpdating || false
-      }))
-      error.value = null
+    const config = useRuntimeConfig()
+    const baseURL = config.public.apiBase || 'http://192.168.1.125:3000'
+    
+    const response = await fetch(`${baseURL}/api/speakers/available`, {
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      mode: 'cors',
+      credentials: 'include'
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      if (Array.isArray(data)) {
+        speakers.value = data.map((speaker: any) => ({
+          ...speaker,
+          isUpdating: speakers.value.find(s => s.id === speaker.id)?.isUpdating || false
+        }))
+        error.value = null
+      }
+    } else {
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
   } catch (err) {
     console.error('Failed to refresh data:', err)
     error.value = 'ไม่สามารถรีเฟรชข้อมูลได้'
+    
+    if (process.client) {
+      useToast().add({
+        title: 'Error',
+        description: 'ไม่สามารถรีเฟรชข้อมูลได้',
+        color: 'error',
+        timeout: 3000
+      })
+    }
   }
 }
 
