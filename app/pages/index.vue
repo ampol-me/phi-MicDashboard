@@ -63,10 +63,8 @@ const toggleMic = async (speaker: Speaker) => {
     const newStatus = !speaker.micOn
 
     // ใช้ URL จาก runtimeConfig
-    const config = useRuntimeConfig()
-    const baseURL = config.public.apiBase || 'http://192.168.1.125:3000'
     
-    const response = await fetch(`${baseURL}/api/speaker/${speaker.id}/mic`, {
+    const response = await fetch(`/api/speaker/${speaker.id}/mic`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -91,7 +89,7 @@ const toggleMic = async (speaker: Speaker) => {
           title: 'Success',
           description: `${speaker.name} ${newStatus ? 'เปิด' : 'ปิด'}`,
           color: 'success',
-          timeout: 2000
+          duration: 2000
         })
       }
     } else {
@@ -106,7 +104,7 @@ const toggleMic = async (speaker: Speaker) => {
         title: 'Error',
         description: 'ไม่สามารถอัพเดทสถานะไมค์ได้',
         color: 'error',
-        timeout: 3000
+        duration: 3000
       })
     }
     
@@ -121,9 +119,9 @@ const toggleMic = async (speaker: Speaker) => {
 const refreshData = async () => {
   try {
     const config = useRuntimeConfig()
-    const baseURL = config.public.apiBase || 'http://192.168.1.125:3000'
+    const baseURL = config.public.apiBase
     
-    const response = await fetch(`${baseURL}/api/speakers/available`, {
+    const response = await fetch(`/api/speakers/available`, {
       headers: {
         'Accept': 'application/json',
         'Cache-Control': 'no-cache'
@@ -153,7 +151,7 @@ const refreshData = async () => {
         title: 'Error',
         description: 'ไม่สามารถรีเฟรชข้อมูลได้',
         color: 'error',
-        timeout: 3000
+        duration: 3000
       })
     }
   }
